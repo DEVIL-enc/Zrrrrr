@@ -1,171 +1,184 @@
-
 import express from "express";
 import fetch from "node-fetch";
-import crypto from "crypto";
 import cookieParser from "cookie-parser";
 
 const app = express();
+
 app.use(express.json());
 app.use(cookieParser());
 
-/* ====== CONFIG ====== */
+/* ================= CONFIG ================= */
 
 const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
 const JSONBIN_BIN_ID = "69cf5fc7856a682189f61041";
 
-const SESSION_SECRET = "RESIST_SUPER_SECRET_987654321";
 const ADMIN_PASSWORD = "RESIST_ADMIN";
 
-const TARGET = "http://165.22.67.210:3000"; // change if needed later
+/* ================= JSONBIN FUNCTIONS ================= */
 
-/* ====== JSONBIN ====== */
+async function fetchLicenses() {
 
-async function fetchLicenses(){
-const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`,{
-headers:{ "X-Access-Key":JSONBIN_API_KEY }
-});
+const res = await fetch(
+`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`,
+{
+headers: {
+"X-Access-Key": JSONBIN_API_KEY
+}
+}
+);
+
 const data = await res.json();
-return data.record.licenses;
+
+return data.record?.licenses || [];
+
 }
 
-async function saveLicenses(licenses){
-await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`,{
-method:"PUT",
-headers:{
-"Content-Type":"application/json",
-"X-Access-Key":JSONBIN_API_KEY
+async function saveLicenses(licenses) {
+
+await fetch(
+`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`,
+{
+method: "PUT",
+headers: {
+"Content-Type": "application/json",
+"X-Access-Key": JSONBIN_API_KEY
 },
-body:JSON.stringify({licenses})
-});
+body: JSON.stringify({ licenses })
+}
+);
+
 }
 
-/* ====== LICENSE CHECK ====== */
+/* ================= VALIDATE LICENSE ================= */
 
-app.post("/api/validate-license",async(req,res)=>{
+app.post("/api/validate-license", async (req, res) => {
 
-const {licenseKey,deviceId}=req.body;
+const { licenseKey, deviceId } = req.body;
 
-if(!licenseKey || !deviceId){
-return res.json({valid:false});
-}
+if (!licenseKey || !deviceId)
+return res.json({ valid: false });
 
-const licenses=await fetchLicenses();
-const lic=licenses.find(l=>l.key===licenseKey);
+const licenses = await fetchLicenses();
 
-if(!lic){
-return res.json({valid:false,error:"invalid"});
-}
+const lic = licenses.find(l => l.key === licenseKey);
 
-if(lic.device_hash && lic.device_hash!==deviceId){
-return res.json({valid:false,error:"deviceMismatch"});
-}
+if (!lic)
+return res.json({ valid: false });
 
-if(!lic.activated_on){
-lic.device_hash=deviceId;
-lic.activated_on=new Date();
+if (lic.device_hash && lic.device_hash !== deviceId)
+return res.json({ valid: false, error: "deviceMismatch" });
 
-const exp=new Date();
-exp.setDate(exp.getDate()+lic.duration_days);
-lic.expires_at=exp;
-}
+if (!lic.activated_on) {
 
-if(new Date(lic.expires_at)<new Date()){
-return res.json({valid:false,error:"expired"});
-}
+lic.device_hash = deviceId;
+lic.activated_on = new Date();
+
+const exp = new Date();
+exp.setDate(exp.getDate() + lic.duration_days);
+
+lic.expires_at = exp;
 
 await saveLicenses(licenses);
 
-res.json({valid:true});
+}
+
+if (new Date(lic.expires_at) < new Date())
+return res.json({ valid: false, error: "expired" });
+
+res.json({ valid: true });
 
 });
 
-/* ====== ADMIN ====== */
+/* ================= ADMIN CREATE ================= */
 
-app.get("/admin/list",async(req,res)=>{
+app.post("/admin/create-license", async (req, res) => {
 
-if(req.headers["x-admin-key"]!==ADMIN_PASSWORD)
+if (req.headers["x-admin-key"] !== ADMIN_PASSWORD)
+return res.status(403).send("Denied");
+
+const { key, duration_days } = req.body;
+
+const licenses = await fetchLicenses();
+
+licenses.push({
+key,
+duration_days,
+device_hash: null,
+activated_on: null,
+expires_at: null,
+processed_videos: 0
+});
+
+await saveLicenses(licenses);
+
+res.json({ success: true });
+
+});
+
+/* ================= ADMIN DELETE ================= */
+
+app.post("/admin/delete-license", async (req, res) => {
+
+if (req.headers["x-admin-key"] !== ADMIN_PASSWORD)
+return res.status(403).send("Denied");
+
+let licenses = await fetchLicenses();
+
+licenses = licenses.filter(l => l.key !== req.body.key);
+
+await saveLicenses(licenses);
+
+res.json({ success: true });
+
+});
+
+/* ================= ADMIN EXTEND ================= */
+
+app.post("/admin/extend-license", async (req, res) => {
+
+if (req.headers["x-admin-key"] !== ADMIN_PASSWORD)
+return res.status(403).send("Denied");
+
+const { key, extra_days } = req.body;
+
+const licenses = await fetchLicenses();
+
+const lic = licenses.find(l => l.key === key);
+
+if (!lic)
+return res.json({ error: "not_found" });
+
+const exp = new Date(lic.expires_at || Date.now());
+
+exp.setDate(exp.getDate() + extra_days);
+
+lic.expires_at = exp;
+
+await saveLicenses(licenses);
+
+res.json({ success: true });
+
+});
+
+/* ================= ADMIN LIST ================= */
+
+app.get("/admin/list", async (req, res) => {
+
+if (req.headers["x-admin-key"] !== ADMIN_PASSWORD)
 return res.status(403).send("Denied");
 
 res.json(await fetchLicenses());
 
 });
 
-app.post("/admin/create-license",async(req,res)=>{
-
-if(req.headers["x-admin-key"]!==ADMIN_PASSWORD)
-return res.status(403).send("Denied");
-
-const {key,duration_days}=req.body;
-
-const licenses=await fetchLicenses();
-
-licenses.push({
-key,
-duration_days,
-device_hash:null,
-activated_on:null,
-expires_at:null,
-processed_videos:0
-});
-
-await saveLicenses(licenses);
-
-res.json({success:true});
-
-});
-
-app.post("/admin/delete-license",async(req,res)=>{
-
-if(req.headers["x-admin-key"]!==ADMIN_PASSWORD)
-return res.status(403).send("Denied");
-
-let licenses=await fetchLicenses();
-licenses=licenses.filter(l=>l.key!==req.body.key);
-
-await saveLicenses(licenses);
-
-res.json({success:true});
-
-});
-
-app.post("/admin/extend-license",async(req,res)=>{
-
-if(req.headers["x-admin-key"]!==ADMIN_PASSWORD)
-return res.status(403).send("Denied");
-
-const {key,extra_days}=req.body;
-
-const licenses=await fetchLicenses();
-const lic=licenses.find(l=>l.key===key);
-
-if(!lic) return res.json({error:"not_found"});
-
-const exp=new Date(lic.expires_at||Date.now());
-exp.setDate(exp.getDate()+extra_days);
-lic.expires_at=exp;
-
-await saveLicenses(licenses);
-
-res.json({success:true});
-
-});
-
-/* ====== VIDEO PROXY ====== */
-
-app.post("/api/process-video",async(req,res)=>{
-const response = await fetch(TARGET+"/api/process-video",{method:"POST",body:req});
-res.send(await response.text());
-});
-
-app.get("/api/process-progress/:id",async(req,res)=>{
-const r=await fetch(TARGET+"/api/process-progress/"+req.params.id);
-res.send(await r.text());
-});
-
-app.get("/api/process-download/:id",(req,res)=>{
-res.redirect(TARGET+"/api/process-download/"+req.params.id);
-});
+/* ================= STATIC FILES ================= */
 
 app.use(express.static("public"));
 
-app.listen(3000,()=>console.log("RESIST TikTok running"));
+/* ================= RENDER PORT FIX ================= */
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+console.log("RESIST TikTok running on port", PORT);
+});
