@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html>
+<body style="background:black;color:white;padding:40px;">
+
+<h2>Admin Panel</h2>
+
+<input id="key" placeholder="Code">
+<input id="days" placeholder="Days">
+
+<button onclick="create()">Create</button>
+
+<pre id="list"></pre>
+
+<script>
+
+const ADMIN="RESIST_ADMIN";
+
+async function load(){
+
+const r=await fetch("/admin/list",{headers:{"x-admin-key":ADMIN}});
+const d=await r.json();
+
+list.innerText=JSON.stringify(d,null,2);
+
+}
+
+async function create(){
+
+await fetch("/admin/create-license",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"x-admin-key":ADMIN
+},
+body:JSON.stringify({
+key:key.value,
+duration_days:Number(days.value)
+})
+});
+
+load();
+
+}
+
+load();
+
+</script>
+
+</body>
+</html>

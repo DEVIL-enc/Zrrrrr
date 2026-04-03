@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>RESIST TikTok</title>
+</head>
+<body style="background:black;color:white;text-align:center;padding-top:100px;">
+
+<h2>Enter License</h2>
+
+<input id="license">
+<button onclick="login()">Login</button>
+
+<script>
+async function login(){
+
+const res=await fetch("/api/validate-license",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+licenseKey:license.value,
+deviceId:navigator.userAgent
+})
+});
+
+const data=await res.json();
+
+if(data.valid){
+localStorage.setItem("license",license.value);
+location.href="dashboard.html";
+}else{
+alert("Invalid License");
+}
+
+}
+</script>
+
+</body>
+</html>
