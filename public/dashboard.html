@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جودة تيك - لوحتي</title>
+    <link rel="icon" href="assets/logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .bg-grid {
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite; z-index: 0;
+        }
+        @keyframes gridMove { to { transform: translate(60px, 60px); } }
+
+        .glow-orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.3; z-index: 0; }
+        .glow-orb:nth-child(2) { width: 300px; height: 300px; background: #6366f1; top: -100px; right: -50px; }
+        .glow-orb:nth-child(3) { width: 250px; height: 250px; background: #8b5cf6; bottom: -80px; left: -60px; }
+
+        /* Header */
+        .header {
+            position: relative; z-index: 10; width: 100%; max-width: 800px;
+            padding: 24px 24px 0; display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .header-right img { width: 36px; filter: invert(1); }
+        .header-right h2 { font-size: 18px; font-weight: 700; }
+        .logout-btn {
+            padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
+            font-family: 'Tajawal', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s;
+        }
+        .logout-btn:hover { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: #f87171; }
+
+        .content { position: relative; z-index: 10; width: 100%; max-width: 800px; padding: 24px; flex: 1; }
+
+        /* Timer */
+        .timer-card {
+            width: 100%; background: rgba(255,255,255,0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+            padding: 24px 32px; text-align: center; margin-bottom: 24px;
+            animation: fadeIn 0.6s ease forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .timer-label { font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        .timer-value { font-size: 32px; font-weight: 800; color: #a78bfa; direction: ltr; margin-bottom: 12px; }
+        .timer-progress { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .timer-progress .fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+        .fill.high { background: linear-gradient(90deg, #6366f1, #a78bfa); }
+        .fill.mid { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .fill.low { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+        /* Tabs */
+        .tabs {
+            display: flex; gap: 8px; margin-bottom: 24px;
+            background: rgba(255,255,255,0.04); border-radius: 14px; padding: 6px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .tab-btn {
+            flex: 1; padding: 14px 20px; border: none; border-radius: 10px;
+            background: transparent; color: rgba(255,255,255,0.4);
+            font-family: 'Tajawal', sans-serif; font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+        }
+        .tab-btn:not(.active):hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); }
+        .tab-btn svg { width: 20px; height: 20px; }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+
+        /* Upload area (shared) */
+        .upload-area {
+            width: 100%; min-height: 200px; background: rgba(255,255,255,0.04);
+            border: 2px dashed rgba(255,255,255,0.12); border-radius: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 16px; cursor: pointer; transition: all 0.3s; position: relative;
+        }
+        .upload-area:hover { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.06); }
+        .upload-area.dragover { border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.1); }
+        .upload-icon {
+            width: 56px; height: 56px; border-radius: 50%; background: rgba(139,92,246,0.12);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .upload-icon svg { width: 24px; height: 24px; color: #a78bfa; }
+        .upload-text { font-size: 15px; color: rgba(255,255,255,0.5); }
+        .upload-text strong { color: #a78bfa; }
+        .upload-hint { font-size: 12px; color: rgba(255,255,255,0.25); }
+
+        .upload-loading {
+            display: none; flex-direction: column; align-items: center; gap: 12px;
+        }
+        .upload-loading .spinner {
+            width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #a78bfa; border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .upload-loading p { color: rgba(255,255,255,0.4); font-size: 14px; }
+
+        /* Video preview */
+        .video-preview { width: 100%; display: none; }
+        .video-preview video { width: 100%; border-radius: 16px; max-height: 350px; background: #000; }
+        .video-preview canvas { width: 100%; border-radius: 16px; max-height: 350px; background: #000; display: block; }
+        .video-preview .preview-container { position: relative; }
+        .video-preview .preview-container video.hidden-video { display: none; }
+        .video-info { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 4px; }
+        .video-name { font-size: 13px; color: rgba(255,255,255,0.5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+
+        .vid-btn {
+            padding: 8px 18px; border-radius: 10px; border: none;
+            font-family: 'Tajawal', sans-serif; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .vid-btn.new-video {
+            background: rgba(139,92,246,0.15); color: #a78bfa;
+            border: 1px solid rgba(139,92,246,0.3);
+        }
+        .vid-btn.new-video:hover { background: rgba(139,92,246,0.25); }
+
+        /* ===== Edit Tab Specific ===== */
+        .edit-controls {
+            width: 100%; background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: 16px;
+            padding: 24px; margin-top: 20px; display: none;
+        }
+        .edit-controls.show { display: block; animation: fadeIn 0.4s ease; }
+
+        .slider-group { margin-bottom: 20px; }
+        .slider-group:last-child { margin-bottom: 0; }
+        .slider-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .slider-label { font-size: 14px; color: rgba(255,255,255,0.6); font-weight: 600; }
+        .slider-value { font-size: 14px; color: #a78bfa; font-weight: 700; direction: ltr; }
+
+        .slider {
+            -webkit-appearance: none; width: 100%; height: 6px;
+            background: rgba(255,255,255,0.1); border-radius: 3px; outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #a78bfa); cursor: pointer;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.4);
+        }
+        .slider::-moz-range-thumb {
+            width: 20px; height: 20px; border-radius: 50%; border: none;
+            background: linear-gradient(135deg, #6366f1, #a78bfa); cursor: pointer;
+        }
+
+        .edit-actions { display: flex; gap: 10px; margin-top: 24px; }
+        .apply-btn {
+            flex: 1; padding: 14px; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none; border-radius: 12px; color: #fff; font-family: 'Tajawal', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s;
+        }
+        .apply-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+        .apply-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .reset-btn {
+            padding: 14px 24px; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            color: rgba(255,255,255,0.6); font-family: 'Tajawal', sans-serif;
+            font-size: 14px; cursor: pointer; transition: all 0.2s;
+        }
+        .reset-btn:hover { background: rgba(255,255,255,0.1); }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; padding: 14px 24px; border-radius: 14px;
+            font-size: 14px; font-weight: 500; z-index: 9999; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            max-width: 90vw;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { border-color: rgba(74,222,128,0.3); }
+        .toast.error { border-color: rgba(248,113,113,0.3); }
+        .toast.info { border-color: rgba(99,102,241,0.3); }
+
+        @media (max-width: 480px) {
+            .timer-value { font-size: 26px; }
+            .header { padding: 16px 16px 0; }
+            .content { padding: 16px; }
+            .tab-btn { font-size: 13px; padding: 12px 10px; }
+            .edit-controls { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="glow-orb"></div>
+<div class="glow-orb"></div>
+
+<div class="header">
+    <div class="header-right">
+        <img src="assets/logo.png" alt="Logo">
+        <h2>جودة تيك</h2>
+    </div>
+    <button class="logout-btn" onclick="logout()">خروج</button>
+</div>
+
+<div class="content">
+    <!-- Timer -->
+    <div class="timer-card">
+        <div class="timer-label">الوقت المتبقي لاشتراكك</div>
+        <div class="timer-value" id="timerValue">--</div>
+        <div class="timer-progress">
+            <div class="fill high" id="timerFill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('smooth')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+            سلاسة الفيديو
+        </button>
+        <button class="tab-btn" onclick="switchTab('resize')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            تغيير الأبعاد
+        </button>
+        <button class="tab-btn" onclick="showToast('تعديل الفيديو قيد التطوير حالياً وسيتوفر قريباً', 'info')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            تعديل الفيديو
+        </button>
+    </div>
+
+    <!-- ===== Tab 1: Edit ===== -->
+    <div class="tab-content" id="tab-edit">
+        <div class="upload-area" id="editUploadArea" onclick="document.getElementById('editFileInput').click()">
+            <div id="editUploadDefault">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="upload-text">اضغط هنا أو <strong>اسحب الفيديو</strong></div>
+                    <div class="upload-hint">MP4, MOV, AVI — حد أقصى 500MB</div>
+                </div>
+            </div>
+            <div class="upload-loading" id="editUploadLoading">
+                <div class="spinner"></div>
+                <p id="editLoadingText">جاري تعديل الفيديو...</p>
+            </div>
+            <input type="file" id="editFileInput" class="upload-input" style="display:none" accept="video/*" onchange="editHandleFile(this.files[0])">
+        </div>
+
+        <div class="video-preview" id="editVideoPreview">
+            <div class="preview-container">
+                <video id="editVideoPlayer" class="hidden-video" muted></video>
+                <canvas id="editCanvas"></canvas>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 0 4px;">
+                <button class="vid-btn new-video" onclick="canvasPlayPause()" id="playPauseBtn">▶ تشغيل</button>
+                <input type="range" id="seekBar" min="0" max="100" value="0" step="0.1" style="flex:1;accent-color:#a78bfa;cursor:pointer;">
+                <span id="timeDisplay" style="font-size:12px;color:rgba(255,255,255,0.4);direction:ltr;min-width:80px;text-align:center;">0:00 / 0:00</span>
+            </div>
+            <div class="video-info">
+                <div class="video-name" id="editVideoName"></div>
+                <button class="vid-btn new-video" onclick="editReset()">فيديو جديد</button>
+            </div>
+        </div>
+
+        <!-- Sliders -->
+        <div class="edit-controls" id="editControls">
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span class="slider-label">السطوع</span>
+                    <span class="slider-value" id="brightnessVal">100%</span>
+                </div>
+                <input type="range" class="slider" id="brightness" min="50" max="150" step="1" value="100" oninput="updateSlider('brightness')">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span class="slider-label">التباين</span>
+                    <span class="slider-value" id="contrastVal">100%</span>
+                </div>
+                <input type="range" class="slider" id="contrast" min="50" max="200" step="1" value="100" oninput="updateSlider('contrast')">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span class="slider-label">التشبع</span>
+                    <span class="slider-value" id="saturationVal">100%</span>
+                </div>
+                <input type="range" class="slider" id="saturation" min="0" max="300" step="1" value="100" oninput="updateSlider('saturation')">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span class="slider-label">الحدة</span>
+                    <span class="slider-value" id="sharpnessVal">0%</span>
+                </div>
+                <input type="range" class="slider" id="sharpness" min="0" max="200" step="1" value="0" oninput="updateSlider('sharpness')">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span class="slider-label">البت ريت</span>
+                    <span class="slider-value" id="bitrateVal">نفس الأصلي</span>
+                </div>
+                <select id="bitrateSelect" class="slider" style="height:36px;border-radius:8px;border:1px solid #555;background:#2a2a2a;color:#fff;padding:0 10px;font-size:14px;cursor:pointer" onchange="document.getElementById('bitrateVal').textContent=this.options[this.selectedIndex].text">
+                    <option value="original">نفس الأصلي</option>
+                    <option value="30000000">30 ميقا</option>
+                    <option value="25000000">25 ميقا</option>
+                    <option value="20000000">20 ميقا</option>
+                </select>
+            </div>
+            <div class="edit-actions">
+                <button class="apply-btn" id="applyEditBtn" onclick="applyEdit()">تطبيق وتنزيل</button>
+                <button class="reset-btn" onclick="resetSliders()">إعادة ضبط</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Tab 3: Resize ===== -->
+    <div class="tab-content" id="tab-resize">
+        <div class="upload-area" id="resizeUploadArea" onclick="document.getElementById('resizeFileInput').click()">
+            <div id="resizeUploadDefault">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="upload-text">اضغط هنا أو <strong>اسحب الفيديو</strong></div>
+                    <div class="upload-hint">MP4, MOV, AVI — حد أقصى 500MB</div>
+                </div>
+            </div>
+            <div class="upload-loading" id="resizeUploadLoading">
+                <div class="spinner"></div>
+                <p id="resizeLoadingText">جاري تغيير الأبعاد...</p>
+                <div id="resizeProgressWrap" style="display:none;width:80%;max-width:300px;background:#333;border-radius:10px;overflow:hidden;margin-top:12px;height:22px;">
+                    <div id="resizeProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg,#6c5ce7,#a29bfe);border-radius:10px;transition:width 0.3s;display:flex;align-items:center;justify-content:center;">
+                        <span id="resizeProgressText" style="font-size:12px;color:#fff;font-weight:bold;">0%</span>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="resizeFileInput" class="upload-input" style="display:none" accept="video/*" onchange="resizeHandleFile(this.files[0])">
+        </div>
+
+        <div class="video-preview" id="resizeVideoPreview" style="display:none;">
+            <video id="resizeVideoPlayer" controls></video>
+            <div class="video-info">
+                <div class="video-name" id="resizeVideoName"></div>
+                <div id="resizeVideoDetails" style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;"></div>
+                <button class="vid-btn new-video" onclick="resizeReset()">فيديو جديد</button>
+            </div>
+        </div>
+
+        <div class="edit-controls" id="resizeControls" style="display:none;">
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span class="slider-label">الأبعاد المطلوبة</span>
+                </div>
+                <select id="resizeTarget" class="slider" style="height:36px;border-radius:8px;border:1px solid #555;background:#2a2a2a;color:#fff;padding:0 10px;font-size:14px;cursor:pointer">
+                    <option value="1920:1080">1920 × 1080 (Full HD)</option>
+                    <option value="1280:720">1280 × 720 (HD)</option>
+                    <option value="1080:1920">1080 × 1920 (موبايل عمودي)</option>
+                    <option value="1080:1080">1080 × 1080 (مربع)</option>
+                    <option value="2560:1440">2560 × 1440 (2K)</option>
+                    <option value="3840:2160">3840 × 2160 (4K)</option>
+                </select>
+            </div>
+            <div class="edit-actions">
+                <button class="apply-btn" id="resizeApplyBtn" onclick="applyResize()">تغيير الأبعاد وتنزيل</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Tab 2: Smooth ===== -->
+    <div class="tab-content active" id="tab-smooth">
+        <div class="upload-area" id="smoothUploadArea" onclick="document.getElementById('smoothFileInput').click()">
+            <div id="smoothUploadDefault">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="upload-text">اضغط هنا أو <strong>اسحب الفيديو</strong></div>
+                    <div class="upload-hint">MP4, MOV, AVI — حد أقصى 500MB</div>
+                </div>
+            </div>
+            <div class="upload-loading" id="smoothUploadLoading">
+                <div class="spinner"></div>
+                <p id="smoothLoadingText">جاري معالجة السلاسة...</p>
+                <div id="smoothProgressWrap" style="display:none;width:80%;max-width:300px;background:#333;border-radius:10px;overflow:hidden;margin-top:12px;height:22px;">
+                    <div id="smoothProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg,#6c5ce7,#a29bfe);border-radius:10px;transition:width 0.3s;display:flex;align-items:center;justify-content:center;">
+                        <span id="smoothProgressText" style="font-size:12px;color:#fff;font-weight:bold;">0%</span>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="smoothFileInput" class="upload-input" style="display:none" accept="video/*" onchange="smoothHandleFile(this.files[0])">
+        </div>
+
+        <div class="video-preview" id="smoothVideoPreview">
+            <video id="smoothVideoPlayer" controls></video>
+            <div class="video-info">
+                <div class="video-name" id="smoothVideoName"></div>
+                <button class="vid-btn new-video" onclick="smoothReset()">فيديو جديد</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    const userSession = JSON.parse(sessionStorage.getItem('user_session') || 'null');
+    if (!userSession) window.location.href = '/';
+
+    // ===== Timer =====
+    function updateTimer() {
+        fetch('/api/verify-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: userSession.code, check_only: true })
+        })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            const el = document.getElementById('timerValue');
+            const fill = document.getElementById('timerFill');
+            if (!ok) { el.textContent = 'منتهي'; fill.style.width = '0%'; fill.className = 'fill low'; return; }
+            el.textContent = data.remaining;
+            const p = data.percent || 50;
+            fill.style.width = p + '%';
+            fill.className = 'fill ' + (p > 50 ? 'high' : p > 20 ? 'mid' : 'low');
+        }).catch(() => {});
+    }
+    updateTimer();
+    setInterval(updateTimer, 60000);
+
+    // ===== Tabs =====
+    function switchTab(tab) {
+        if (tab === 'edit') return; // تعديل الفيديو مقفل حالياً
+        const tabMap = { smooth: 0, resize: 1, edit: 2 };
+        document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === tabMap[tab]));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+    }
+
+    // ===== Shared helpers =====
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.className = 'toast';
+        // Auto-detect type from message
+        if (!type) {
+            if (msg.includes('تم') || msg.includes('نجاح') || msg.includes('جاري التنزيل')) type = 'success';
+            else if (msg.includes('خطأ') || msg.includes('فشل') || msg.includes('غير')) type = 'error';
+            else type = 'info';
+        }
+        const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+        t.innerHTML = `<span>${icons[type] || ''}</span><span>${msg}</span>`;
+        t.classList.add('show', type);
+        setTimeout(() => { t.classList.remove('show'); }, 3000);
+    }
+    function formatSize(b) { return b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB'; }
+    function logout() { sessionStorage.removeItem('user_session'); window.location.href = '/'; }
+
+    function validateFile(file) {
+        if (!file) return false;
+        if (!file.type.startsWith('video/')) {
+            showToast('الملف المرفوع ليس فيديو. الصيغ المدعومة: MP4, MOV, AVI', 'error');
+            return false;
+        }
+        if (file.size > 500*1024*1024) {
+            showToast('حجم الفيديو ' + formatSize(file.size) + ' يتجاوز الحد الأقصى 500MB', 'error');
+            return false;
+        }
+        if (file.size < 1024) {
+            showToast('الملف فارغ أو تالف. اختر فيديو آخر', 'error');
+            return false;
+        }
+        return true;
+    }
+
+    function setupDragDrop(area, handler) {
+        area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('dragover'); });
+        area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+        area.addEventListener('drop', e => {
+            e.preventDefault(); area.classList.remove('dragover');
+            const f = e.dataTransfer.files[0];
+            if (f && f.type.startsWith('video/')) handler(f);
+            else showToast('الملف المسحوب ليس فيديو. جرب MP4 أو MOV', 'error');
+        });
+    }
+
+    // ===== EDIT TAB (WebGL GPU preview — matches ffmpeg eq exactly) =====
+    let editFile = null;
+    let canvasAnimId = null;
+    let isPlaying = false;
+    const editArea = document.getElementById('editUploadArea');
+    const editVideo = document.getElementById('editVideoPlayer');
+    const editCanvas = document.getElementById('editCanvas');
+    const seekBar = document.getElementById('seekBar');
+    const timeDisplay = document.getElementById('timeDisplay');
+
+    // ---- WebGL Setup ----
+    let gl = null;
+    let glReady = false;
+    try {
+    gl = editCanvas.getContext('webgl', {preserveDrawingBuffer: true}) || editCanvas.getContext('experimental-webgl', {preserveDrawingBuffer: true});
+    if (!gl) throw new Error('WebGL not supported');
+    } catch(e) { console.error('WebGL init failed:', e); }
+
+    // Vertex shader - simple fullscreen quad
+    const vsSource = `
+        attribute vec2 a_position;
+        attribute vec2 a_texCoord;
+        varying vec2 v_texCoord;
+        void main() {
+            gl_Position = vec4(a_position, 0.0, 1.0);
+            v_texCoord = a_texCoord;
+        }
+    `;
+
+    // Fragment shader - ALL operations in RGB space (with sharpness)
+    const fsSource = `
+        precision mediump float;
+        varying vec2 v_texCoord;
+        uniform sampler2D u_video;
+        uniform float u_brightness;
+        uniform float u_contrast;
+        uniform float u_saturation;
+        uniform float u_sharpness;
+        uniform vec2 u_texSize;
+
+        void main() {
+            vec4 color = texture2D(u_video, v_texCoord);
+
+            // Step 1: Sharpness (unsharp mask using 3x3 box blur)
+            if (u_sharpness > 0.0) {
+                vec2 texel = 1.0 / u_texSize;
+                vec4 blur = (
+                    texture2D(u_video, v_texCoord + vec2(-texel.x, -texel.y)) +
+                    texture2D(u_video, v_texCoord + vec2(0.0, -texel.y)) +
+                    texture2D(u_video, v_texCoord + vec2(texel.x, -texel.y)) +
+                    texture2D(u_video, v_texCoord + vec2(-texel.x, 0.0)) +
+                    color +
+                    texture2D(u_video, v_texCoord + vec2(texel.x, 0.0)) +
+                    texture2D(u_video, v_texCoord + vec2(-texel.x, texel.y)) +
+                    texture2D(u_video, v_texCoord + vec2(0.0, texel.y)) +
+                    texture2D(u_video, v_texCoord + vec2(texel.x, texel.y))
+                ) / 9.0;
+                color.rgb += (color.rgb - blur.rgb) * u_sharpness * 1.5;
+            }
+
+            // Step 2: Brightness (additive to each RGB channel)
+            color.rgb += u_brightness;
+
+            // Step 3: Contrast (multiply around 0.5 midpoint on each RGB channel)
+            color.rgb = (color.rgb - 0.5) * u_contrast + 0.5;
+
+            // Step 4: Saturation (RGB mix with gray, BT.601 weights)
+            float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+            color.rgb = mix(vec3(gray), color.rgb, u_saturation);
+
+            color.rgb = clamp(color.rgb, 0.0, 1.0);
+            gl_FragColor = color;
+        }
+    `;
+
+    let program, uBrightness, uContrast, uSaturation, uSharpness, uTexSize, texture;
+
+    if (gl) {
+      try {
+        function compileShader(src, type) {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+                console.error('Shader error:', gl.getShaderInfoLog(s));
+            }
+            return s;
+        }
+
+        const vs = compileShader(vsSource, gl.VERTEX_SHADER);
+        const fs = compileShader(fsSource, gl.FRAGMENT_SHADER);
+        program = gl.createProgram();
+        gl.attachShader(program, vs);
+        gl.attachShader(program, fs);
+        gl.linkProgram(program);
+        gl.useProgram(program);
+
+        const verts = new Float32Array([
+            -1,-1, 0,1,
+             1,-1, 1,1,
+            -1, 1, 0,0,
+             1, 1, 1,0
+        ]);
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+        const aPos = gl.getAttribLocation(program, 'a_position');
+        const aTex = gl.getAttribLocation(program, 'a_texCoord');
+        gl.enableVertexAttribArray(aPos);
+        gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 16, 0);
+        gl.enableVertexAttribArray(aTex);
+        gl.vertexAttribPointer(aTex, 2, gl.FLOAT, false, 16, 8);
+
+        texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        uBrightness = gl.getUniformLocation(program, 'u_brightness');
+        uContrast = gl.getUniformLocation(program, 'u_contrast');
+        uSaturation = gl.getUniformLocation(program, 'u_saturation');
+        uSharpness = gl.getUniformLocation(program, 'u_sharpness');
+        uTexSize = gl.getUniformLocation(program, 'u_texSize');
+
+        glReady = true;
+        console.log('WebGL initialized successfully');
+      } catch(e) {
+        console.error('WebGL setup failed:', e);
+      }
+    }
+
+    setupDragDrop(editArea, editHandleFile);
+
+    function editHandleFile(file) {
+        if (!validateFile(file)) return;
+        editFile = file;
+
+        const url = URL.createObjectURL(file);
+        editVideo.src = url;
+        document.getElementById('editVideoName').textContent = file.name + ' (' + formatSize(file.size) + ')';
+
+        editVideo.onloadedmetadata = () => {
+            editCanvas.width = editVideo.videoWidth;
+            editCanvas.height = editVideo.videoHeight;
+            gl.viewport(0, 0, editCanvas.width, editCanvas.height);
+            seekBar.max = editVideo.duration;
+            updateTimeDisplay();
+            // Wait for first frame to be ready
+            editVideo.currentTime = 0.01;
+        };
+        editVideo.onseeked = function firstFrame() {
+            drawFrame();
+            editVideo.onseeked = () => { if (!isPlaying) drawFrame(); };
+        };
+
+        editArea.style.display = 'none';
+        document.getElementById('editVideoPreview').style.display = 'block';
+        document.getElementById('editControls').classList.add('show');
+    }
+
+    function canvasPlayPause() {
+        if (isPlaying) {
+            editVideo.pause();
+            isPlaying = false;
+            document.getElementById('playPauseBtn').textContent = '▶ تشغيل';
+            cancelAnimationFrame(canvasAnimId);
+        } else {
+            editVideo.play();
+            isPlaying = true;
+            document.getElementById('playPauseBtn').textContent = '⏸ إيقاف';
+            renderLoop();
+        }
+    }
+
+    function renderLoop() {
+        drawFrame();
+        seekBar.value = editVideo.currentTime;
+        updateTimeDisplay();
+        if (!editVideo.paused && !editVideo.ended) {
+            canvasAnimId = requestAnimationFrame(renderLoop);
+        } else {
+            isPlaying = false;
+            document.getElementById('playPauseBtn').textContent = '▶ تشغيل';
+        }
+    }
+
+    editVideo.addEventListener('ended', () => {
+        isPlaying = false;
+        document.getElementById('playPauseBtn').textContent = '▶ تشغيل';
+    });
+
+    seekBar.addEventListener('input', () => {
+        editVideo.currentTime = parseFloat(seekBar.value);
+        updateTimeDisplay();
+    });
+
+    function updateTimeDisplay() {
+        const cur = formatTime(editVideo.currentTime);
+        const dur = formatTime(editVideo.duration || 0);
+        timeDisplay.textContent = `${cur} / ${dur}`;
+    }
+    function formatTime(s) {
+        const m = Math.floor(s / 60); const sec = Math.floor(s % 60);
+        return m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    function drawFrame() {
+        if (!editVideo.videoWidth || !glReady) return;
+
+        // Upload video frame to GPU texture
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, editVideo);
+
+        // Slider values
+        const b = (parseFloat(document.getElementById('brightness').value) - 100) / 100;
+        const c = parseFloat(document.getElementById('contrast').value) / 100;
+        const s = parseFloat(document.getElementById('saturation').value) / 100;
+        const sh = parseFloat(document.getElementById('sharpness').value) / 100;
+
+        // Set uniforms
+        gl.uniform1f(uBrightness, b);
+        gl.uniform1f(uContrast, c);
+        gl.uniform1f(uSaturation, s);
+        gl.uniform1f(uSharpness, sh);
+        gl.uniform2f(uTexSize, editCanvas.width, editCanvas.height);
+
+        // Draw
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+
+    function editReset() {
+        editFile = null;
+        isPlaying = false;
+        cancelAnimationFrame(canvasAnimId);
+        if (editVideo.src) URL.revokeObjectURL(editVideo.src);
+        editVideo.src = '';
+        document.getElementById('editVideoPreview').style.display = 'none';
+        document.getElementById('editControls').classList.remove('show');
+        editArea.style.display = 'flex';
+        editArea.style.pointerEvents = 'auto';
+        document.getElementById('editUploadDefault').style.display = 'block';
+        document.getElementById('editUploadLoading').style.display = 'none';
+        document.getElementById('editFileInput').value = '';
+        document.getElementById('playPauseBtn').textContent = '▶ تشغيل';
+        resetSliders();
+    }
+
+    function updateSlider(id) {
+        document.getElementById(id + 'Val').textContent = document.getElementById(id).value + '%';
+        drawFrame();
+    }
+
+    function resetSliders() {
+        document.getElementById('brightness').value = 100; document.getElementById('brightnessVal').textContent = '100%';
+        document.getElementById('contrast').value = 100; document.getElementById('contrastVal').textContent = '100%';
+        document.getElementById('saturation').value = 100; document.getElementById('saturationVal').textContent = '100%';
+        document.getElementById('sharpness').value = 0; document.getElementById('sharpnessVal').textContent = '0%';
+        drawFrame();
+    }
+
+    // Audio context for capturing video audio (setup once)
+    let audioCtx = null, audioDest = null;
+
+    function setupAudioCapture() {
+        if (audioCtx) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioCtx.createMediaElementSource(editVideo);
+            audioDest = audioCtx.createMediaStreamDestination();
+            source.connect(audioDest);
+            source.connect(audioCtx.destination);
+        } catch(e) {
+            console.warn('Audio capture not available:', e);
+        }
+    }
+
+    function applyEdit() {
+        if (!editFile) { showToast('اختر فيديو أولاً قبل التطبيق', 'error'); return; }
+
+        // Check browser support
+        if (!editCanvas.captureStream || !window.MediaRecorder) {
+            showToast('متصفحك لا يدعم تصدير الفيديو. استخدم Chrome أو Safari محدّث', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('applyEditBtn');
+        btn.disabled = true; btn.textContent = 'جاري التجهيز...';
+
+        // Setup audio capture on first use (needs user gesture)
+        setupAudioCapture();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+        // Show loading UI
+        document.getElementById('editVideoPreview').style.display = 'none';
+        document.getElementById('editControls').classList.remove('show');
+        editArea.style.display = 'flex';
+        document.getElementById('editUploadDefault').style.display = 'none';
+        document.getElementById('editUploadLoading').style.display = 'flex';
+        document.getElementById('editLoadingText').textContent = 'جاري تصدير الفيديو... 0%';
+        editArea.style.pointerEvents = 'none';
+
+        // Capture canvas stream at 60fps (covers both 30fps and 60fps sources)
+        const canvasStream = editCanvas.captureStream(60);
+
+        // Combine video + audio tracks
+        const tracks = [...canvasStream.getVideoTracks()];
+        if (audioDest) {
+            const audioTracks = audioDest.stream.getAudioTracks();
+            if (audioTracks.length > 0) tracks.push(...audioTracks);
+        }
+        const combinedStream = new MediaStream(tracks);
+
+        // Pick best supported format — prefer mp4
+        let mimeType = '';
+        const formats = [
+            'video/mp4;codecs=avc1,mp4a.40.2',
+            'video/mp4;codecs=avc1',
+            'video/mp4',
+            'video/webm;codecs=vp9,opus',
+            'video/webm;codecs=vp8,opus',
+            'video/webm'
+        ];
+        for (const fmt of formats) {
+            if (MediaRecorder.isTypeSupported(fmt)) { mimeType = fmt; break; }
+        }
+        console.log('Recording format:', mimeType);
+
+        // Calculate bitrate based on user selection
+        const duration = editVideo.duration || 1;
+        const originalBitrate = Math.round((editFile.size * 8) / duration);
+        const bitrateChoice = document.getElementById('bitrateSelect').value;
+        const selectedBitrate = (bitrateChoice === 'original') ? originalBitrate : parseInt(bitrateChoice);
+        console.log('Original bitrate:', Math.round(originalBitrate / 1000), 'kbps');
+        console.log('Selected bitrate:', Math.round(selectedBitrate / 1000), 'kbps');
+
+        const recorder = new MediaRecorder(combinedStream, {
+            mimeType: mimeType || undefined,
+            videoBitsPerSecond: selectedBitrate
+        });
+
+        const chunks = [];
+        recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: mimeType || 'video/webm' });
+            const baseName = 'edited_' + editFile.name.replace(/\.[^.]+$/, '');
+            const isAlreadyMp4 = mimeType && mimeType.includes('mp4');
+
+            function restoreUI() {
+                editVideo.muted = true;
+                isPlaying = false;
+                cancelAnimationFrame(canvasAnimId);
+                document.getElementById('playPauseBtn').textContent = '▶ تشغيل';
+                const previewUrl = URL.createObjectURL(editFile);
+                editVideo.src = previewUrl;
+                editArea.style.display = 'none';
+                document.getElementById('editVideoPreview').style.display = 'block';
+                document.getElementById('editControls').classList.add('show');
+                btn.disabled = false; btn.textContent = 'تطبيق وتنزيل';
+            }
+
+            function downloadBlob(b, name) {
+                const url = URL.createObjectURL(b);
+                const a = document.createElement('a');
+                a.href = url; a.download = name;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+            }
+
+            if (isAlreadyMp4) {
+                // Already mp4, download directly
+                downloadBlob(blob, baseName + '.mp4');
+                restoreUI();
+                showToast('تم التصدير! جاري التنزيل...');
+            } else {
+                // Convert webm to mp4 on server
+                document.getElementById('editLoadingText').textContent = 'جاري التحويل إلى MP4...';
+                const fd = new FormData();
+                fd.append('video', blob, 'input.webm');
+                fetch('/api/convert-mp4', { method: 'POST', body: fd })
+                .then(r => {
+                    if (!r.ok) throw new Error('فشل التحويل');
+                    return r.blob();
+                })
+                .then(mp4Blob => {
+                    downloadBlob(mp4Blob, baseName + '.mp4');
+                    restoreUI();
+                    showToast('تم التصدير بصيغة MP4! جاري التنزيل...');
+                })
+                .catch(err => {
+                    console.warn('MP4 conversion failed, downloading webm:', err);
+                    downloadBlob(blob, baseName + '.webm');
+                    restoreUI();
+                    showToast('تم التصدير بصيغة WebM (التحويل لـ MP4 غير متاح)');
+                });
+            }
+        };
+
+        // Start recording: play video from beginning
+        editVideo.muted = false;
+        editVideo.currentTime = 0;
+        const totalDuration = duration;
+
+        editVideo.onseeked = function onceReady() {
+            editVideo.onseeked = () => { if (!isPlaying) drawFrame(); };
+
+            recorder.start(100);
+            editVideo.play();
+            isPlaying = true;
+            showToast('جاري تصدير الفيديو... يرجى الانتظار');
+
+            function exportLoop() {
+                drawFrame();
+                seekBar.value = editVideo.currentTime;
+                updateTimeDisplay();
+
+                // Update progress
+                const pct = Math.round((editVideo.currentTime / totalDuration) * 100);
+                document.getElementById('editLoadingText').textContent = 'جاري تصدير الفيديو... ' + pct + '%';
+
+                if (!editVideo.paused && !editVideo.ended) {
+                    canvasAnimId = requestAnimationFrame(exportLoop);
+                }
+            }
+            exportLoop();
+
+            editVideo.onended = () => {
+                setTimeout(() => recorder.stop(), 200);
+                isPlaying = false;
+            };
+        };
+    }
+
+    // ===== SMOOTH TAB =====
+    let smoothFile = null;
+    const smoothArea = document.getElementById('smoothUploadArea');
+    setupDragDrop(smoothArea, smoothHandleFile);
+
+    function smoothUpdateProgress(pct, text) {
+        document.getElementById('smoothProgressBar').style.width = pct + '%';
+        document.getElementById('smoothProgressText').textContent = pct + '%';
+        document.getElementById('smoothLoadingText').textContent = text;
+    }
+
+    function smoothShowError(msg) {
+        showToast(msg || 'فشل في معالجة الفيديو');
+        document.getElementById('smoothUploadDefault').style.display = 'block';
+        document.getElementById('smoothUploadLoading').style.display = 'none';
+        document.getElementById('smoothProgressWrap').style.display = 'none';
+        smoothArea.style.pointerEvents = 'auto';
+        document.getElementById('smoothFileInput').value = '';
+    }
+
+    function smoothHandleFile(file) {
+        if (!validateFile(file)) return;
+        smoothFile = file;
+
+        document.getElementById('smoothUploadDefault').style.display = 'none';
+        document.getElementById('smoothUploadLoading').style.display = 'flex';
+        document.getElementById('smoothProgressWrap').style.display = 'block';
+        smoothUpdateProgress(0, 'جاري رفع الفيديو... 0%');
+        smoothArea.style.pointerEvents = 'none';
+
+        const fd = new FormData();
+        fd.append('video', file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/process-video');
+
+        // Phase 1: Upload progress
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 100);
+                smoothUpdateProgress(pct, 'جاري رفع الفيديو... ' + pct + '%');
+            }
+        };
+
+        xhr.upload.onload = () => {
+            smoothUpdateProgress(0, 'جاري معالجة السلاسة... 0%');
+        };
+
+        xhr.onload = () => {
+            if (xhr.status !== 200) {
+                smoothShowError('فشل في رفع الفيديو');
+                return;
+            }
+
+            try {
+                const data = JSON.parse(xhr.responseText);
+                if (data.jobId) {
+                    // Phase 2: Poll processing progress
+                    pollProgress(data.jobId, file);
+                }
+            } catch(e) { smoothShowError('خطأ غير متوقع'); }
+        };
+
+        xhr.onerror = () => smoothShowError('فشل الاتصال بالسيرفر');
+        xhr.send(fd);
+    }
+
+    function pollProgress(jobId, file) {
+        const interval = setInterval(() => {
+            fetch('/api/process-progress/' + jobId)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'processing') {
+                    smoothUpdateProgress(data.progress, 'جاري معالجة السلاسة... ' + data.progress + '%');
+                } else if (data.status === 'done') {
+                    clearInterval(interval);
+                    smoothUpdateProgress(100, 'تمت المعالجة! جاري التنزيل...');
+
+                    // Download the file
+                    const a = document.createElement('a');
+                    a.href = '/api/process-download/' + jobId;
+                    a.download = 'smooth_' + file.name;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+                    const previewUrl = URL.createObjectURL(file);
+                    document.getElementById('smoothVideoPlayer').src = previewUrl;
+                    document.getElementById('smoothVideoName').textContent = file.name + ' (' + formatSize(file.size) + ')';
+
+                    smoothArea.style.display = 'none';
+                    document.getElementById('smoothVideoPreview').style.display = 'block';
+                    document.getElementById('smoothProgressWrap').style.display = 'none';
+                    showToast('تمت المعالجة! جاري التنزيل...');
+                } else if (data.status === 'error') {
+                    clearInterval(interval);
+                    smoothShowError('فشل في معالجة الفيديو');
+                }
+            })
+            .catch(() => {
+                clearInterval(interval);
+                smoothShowError('فشل الاتصال بالسيرفر');
+            });
+        }, 1000);
+    }
+
+    function smoothReset() {
+        smoothFile = null;
+        const p = document.getElementById('smoothVideoPlayer');
+        if (p.src) URL.revokeObjectURL(p.src); p.src = '';
+        document.getElementById('smoothVideoPreview').style.display = 'none';
+        smoothArea.style.display = 'flex';
+        smoothArea.style.pointerEvents = 'auto';
+        document.getElementById('smoothUploadDefault').style.display = 'block';
+        document.getElementById('smoothUploadLoading').style.display = 'none';
+        document.getElementById('smoothFileInput').value = '';
+    }
+
+    // ===== RESIZE TAB (FFmpeg server-side) =====
+    let resizeFile = null;
+    const resizeArea = document.getElementById('resizeUploadArea');
+    setupDragDrop(resizeArea, resizeHandleFile);
+
+    function resizeUpdateProgress(pct, text) {
+        document.getElementById('resizeProgressBar').style.width = pct + '%';
+        document.getElementById('resizeProgressText').textContent = pct + '%';
+        document.getElementById('resizeLoadingText').textContent = text;
+    }
+
+    function resizeShowError(msg) {
+        showToast(msg || 'فشل في تغيير الأبعاد', 'error');
+        document.getElementById('resizeUploadDefault').style.display = 'block';
+        document.getElementById('resizeUploadLoading').style.display = 'none';
+        document.getElementById('resizeProgressWrap').style.display = 'none';
+        resizeArea.style.display = 'flex';
+        resizeArea.style.pointerEvents = 'auto';
+        document.getElementById('resizeFileInput').value = '';
+        document.getElementById('resizeVideoPreview').style.display = 'none';
+        document.getElementById('resizeControls').style.display = 'none';
+    }
+
+    function resizeHandleFile(file) {
+        if (!validateFile(file)) return;
+        resizeFile = file;
+
+        const previewUrl = URL.createObjectURL(file);
+        const player = document.getElementById('resizeVideoPlayer');
+        player.src = previewUrl;
+        player.onloadedmetadata = () => {
+            document.getElementById('resizeVideoDetails').textContent = `الأبعاد الحالية: ${player.videoWidth} × ${player.videoHeight}`;
+        };
+        document.getElementById('resizeVideoName').textContent = file.name + ' (' + formatSize(file.size) + ')';
+
+        resizeArea.style.display = 'none';
+        document.getElementById('resizeVideoPreview').style.display = 'block';
+        document.getElementById('resizeControls').style.display = 'block';
+    }
+
+    function applyResize() {
+        if (!resizeFile) return;
+
+        const target = document.getElementById('resizeTarget').value;
+        const btn = document.getElementById('resizeApplyBtn');
+        btn.disabled = true;
+        btn.textContent = 'جاري المعالجة...';
+
+        document.getElementById('resizeVideoPreview').style.display = 'none';
+        document.getElementById('resizeControls').style.display = 'none';
+        resizeArea.style.display = 'flex';
+        document.getElementById('resizeUploadDefault').style.display = 'none';
+        document.getElementById('resizeUploadLoading').style.display = 'flex';
+        document.getElementById('resizeProgressWrap').style.display = 'block';
+        resizeUpdateProgress(0, 'جاري رفع الفيديو... 0%');
+        resizeArea.style.pointerEvents = 'none';
+
+        const fd = new FormData();
+        fd.append('video', resizeFile);
+        fd.append('target', target);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/resize-video');
+
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 100);
+                resizeUpdateProgress(pct, 'جاري رفع الفيديو... ' + pct + '%');
+            }
+        };
+
+        xhr.upload.onload = () => resizeUpdateProgress(0, 'جاري تغيير الأبعاد... 0%');
+
+        xhr.onload = () => {
+            if (xhr.status !== 200) { btn.disabled = false; btn.textContent = 'تغيير الأبعاد وتنزيل'; resizeShowError('فشل في رفع الفيديو'); return; }
+            try {
+                const data = JSON.parse(xhr.responseText);
+                if (data.jobId) resizePollProgress(data.jobId);
+            } catch(e) { btn.disabled = false; btn.textContent = 'تغيير الأبعاد وتنزيل'; resizeShowError('خطأ غير متوقع'); }
+        };
+
+        xhr.onerror = () => { btn.disabled = false; btn.textContent = 'تغيير الأبعاد وتنزيل'; resizeShowError('فشل الاتصال بالسيرفر'); };
+        xhr.send(fd);
+    }
+
+    function resizePollProgress(jobId) {
+        const interval = setInterval(() => {
+            fetch('/api/process-progress/' + jobId).then(r => r.json()).then(data => {
+                if (data.status === 'processing') {
+                    resizeUpdateProgress(data.progress, 'جاري تغيير الأبعاد... ' + data.progress + '%');
+                } else if (data.status === 'done') {
+                    clearInterval(interval);
+                    resizeUpdateProgress(100, 'تم! جاري التنزيل...');
+                    const a = document.createElement('a');
+                    a.href = '/api/process-download/' + jobId;
+                    a.download = 'resized_' + resizeFile.name;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    showToast('تم تغيير الأبعاد! جاري التنزيل...');
+                    const btn = document.getElementById('resizeApplyBtn');
+                    btn.disabled = false; btn.textContent = 'تغيير الأبعاد وتنزيل';
+                    resizeArea.style.display = 'none';
+                    document.getElementById('resizeVideoPreview').style.display = 'block';
+                    document.getElementById('resizeControls').style.display = 'block';
+                    document.getElementById('resizeUploadLoading').style.display = 'none';
+                } else if (data.status === 'error') {
+                    clearInterval(interval);
+                    const btn = document.getElementById('resizeApplyBtn');
+                    btn.disabled = false; btn.textContent = 'تغيير الأبعاد وتنزيل';
+                    resizeShowError('فشل في تغيير الأبعاد');
+                }
+            }).catch(() => { clearInterval(interval); resizeShowError('فشل الاتصال بالسيرفر'); });
+        }, 1000);
+    }
+
+    function resizeReset() {
+        resizeFile = null;
+        const p = document.getElementById('resizeVideoPlayer');
+        if (p.src) URL.revokeObjectURL(p.src); p.src = '';
+        document.getElementById('resizeVideoPreview').style.display = 'none';
+        document.getElementById('resizeControls').style.display = 'none';
+        resizeArea.style.display = 'flex';
+        resizeArea.style.pointerEvents = 'auto';
+        document.getElementById('resizeUploadDefault').style.display = 'block';
+        document.getElementById('resizeUploadLoading').style.display = 'none';
+        document.getElementById('resizeFileInput').value = '';
+    }
+</script>
+</body>
+</html>

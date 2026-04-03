@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جودة تيك</title>
+    <link rel="icon" href="assets/logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #050508;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated mesh background */
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 600px 400px at 20% 20%, rgba(99,102,241,0.12), transparent),
+                radial-gradient(ellipse 500px 350px at 80% 80%, rgba(139,92,246,0.1), transparent),
+                radial-gradient(ellipse 400px 300px at 50% 50%, rgba(59,130,246,0.06), transparent);
+            animation: meshShift 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes meshShift {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(30deg); }
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: orbFloat 10s ease-in-out infinite;
+        }
+        .orb-1 { width: 350px; height: 350px; background: rgba(99,102,241,0.25); top: -120px; right: -80px; }
+        .orb-2 { width: 280px; height: 280px; background: rgba(139,92,246,0.2); bottom: -100px; left: -80px; animation-delay: -4s; }
+        .orb-3 { width: 200px; height: 200px; background: rgba(59,130,246,0.15); top: 40%; left: 60%; animation-delay: -7s; }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(40px, -30px) scale(1.08); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(30px, 10px) scale(1.03); }
+        }
+
+        /* Main container */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+            animation: containerEntry 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        @keyframes containerEntry {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card with animated gradient border */
+        .card-outer {
+            position: relative;
+            border-radius: 28px;
+            padding: 1.5px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #3b82f6, #6366f1);
+            background-size: 300% 300%;
+            animation: borderGlow 6s ease infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .card-inner {
+            background: rgba(10, 10, 20, 0.95);
+            border-radius: 27px;
+            padding: 40px 36px 36px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+        }
+
+        /* Logo with glowing ring */
+        .logo-container {
+            position: relative;
+            width: 95px;
+            height: 95px;
+            margin: 0 auto 16px;
+            animation: logoReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+            opacity: 0;
+            transform: scale(0.6);
+        }
+
+        @keyframes logoReveal {
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .logo-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #6366f1, #8b5cf6, #3b82f6, #6366f1);
+            animation: ringRotate 4s linear infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes ringRotate {
+            to { transform: rotate(360deg); }
+        }
+
+        .logo-ring::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background: #0a0a14;
+        }
+
+        .logo-img {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: invert(1) drop-shadow(0 0 20px rgba(139,92,246,0.4));
+            padding: 18px;
+        }
+
+        /* Typography */
+        .brand-name {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e0e7ff, #fff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            animation: textReveal 1s ease 0.5s forwards;
+            opacity: 0;
+        }
+
+        .brand-sub {
+            font-size: 14px;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 28px;
+            animation: textReveal 1s ease 0.6s forwards;
+            opacity: 0;
+        }
+
+        @keyframes textReveal {
+            to { opacity: 1; }
+        }
+
+        /* Input */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+            animation: textReveal 1s ease 0.7s forwards;
+            opacity: 0;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 18px 20px;
+            padding-right: 50px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            color: #fff;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 10px;
+            outline: none;
+            transition: all 0.4s ease;
+            direction: ltr;
+        }
+
+        .code-input::placeholder {
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 2px;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        .code-input:focus {
+            border-color: rgba(99,102,241,0.5);
+            background: rgba(99,102,241,0.06);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.08), 0 0 40px rgba(99,102,241,0.08);
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.2);
+            transition: color 0.3s;
+        }
+
+        .code-input:focus ~ .input-icon { color: rgba(99,102,241,0.6); }
+
+        .input-icon svg { width: 20px; height: 20px; }
+
+        /* Button */
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #6366f1, #7c3aed);
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            animation: textReveal 1s ease 0.8s forwards;
+            opacity: 0;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #818cf8, #a78bfa);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .login-btn:hover::before { opacity: 1; }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(99,102,241,0.4);
+        }
+
+        .login-btn:active { transform: translateY(-1px); }
+
+        .login-btn span { position: relative; z-index: 1; }
+
+        .login-btn.loading span { opacity: 0; }
+
+        .login-btn .spinner {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 26px; height: 26px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            display: none;
+            z-index: 1;
+        }
+
+        .login-btn.loading .spinner {
+            display: block;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        /* Messages */
+        .error-msg {
+            color: #f87171;
+            font-size: 14px;
+            margin-top: 16px;
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+
+        .error-msg.show { opacity: 1; transform: translateY(0); }
+
+        .login-card.success { border-color: rgba(34,197,94,0.3); }
+
+        .success-msg {
+            color: #4ade80;
+            font-size: 16px;
+            font-weight: 500;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .login-card.success .success-msg {
+            display: block;
+            animation: containerEntry 0.4s ease forwards;
+        }
+
+        /* Features strip */
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 28px;
+            animation: textReveal 1s ease 1s forwards;
+            opacity: 0;
+        }
+
+        .feature-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover .feature-icon {
+            background: rgba(99,102,241,0.1);
+            border-color: rgba(99,102,241,0.3);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon svg { width: 18px; height: 18px; color: rgba(255,255,255,0.4); }
+
+        .feature-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            font-weight: 500;
+        }
+
+        /* Particles */
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            background: rgba(99,102,241,0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card-inner { padding: 40px 24px 36px; }
+            .logo-container { width: 90px; height: 90px; }
+            .brand-name { font-size: 26px; }
+            .features { gap: 20px; }
+            .code-input { font-size: 18px; letter-spacing: 8px; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background -->
+    <div class="bg-mesh"></div>
+    <div class="bg-grid"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Login Card -->
+    <div class="main-container">
+        <div class="card-outer">
+            <div class="card-inner" id="loginCard">
+                <div class="logo-container">
+                    <div class="logo-ring"></div>
+                    <img class="logo-img" src="assets/logo.png" alt="جودة تيك">
+                </div>
+                <h1 class="brand-name">جودة تيك</h1>
+                <p class="brand-sub">أدخل كود الاشتراك للمتابعة</p>
+
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            class="code-input"
+                            id="codeInput"
+                            placeholder="أدخل الكود"
+                            maxlength="10"
+                            autocomplete="off"
+                            autofocus
+                        >
+                        <div class="input-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="login-btn" id="loginBtn">
+                        <span>تسجيل الدخول</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+
+                <p class="error-msg" id="errorMsg">الكود غير صحيح</p>
+                <p class="success-msg" id="successMsg">تم تسجيل الدخول بنجاح!</p>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                    </svg>
+                </div>
+                <span class="feature-label">سلاسة الفيديو</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                </div>
+                <span class="feature-label">تعديل الفيديو</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+                <span class="feature-label">جودة عالية</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Particles
+        (function() {
+            for (let i = 0; i < 25; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.top = Math.random() * 100 + 'vh';
+                p.animate([
+                    { transform: 'translate(0,0)', opacity: Math.random() * 0.4 + 0.1 },
+                    { transform: `translate(${Math.random()*80-40}px,${Math.random()*80-40}px)`, opacity: Math.random() * 0.2 },
+                    { transform: 'translate(0,0)', opacity: Math.random() * 0.4 + 0.1 }
+                ], { duration: (Math.random()*10+10)*1000, iterations: Infinity, easing: 'ease-in-out' });
+                document.body.appendChild(p);
+            }
+        })();
+
+        // Generate unique device ID
+        function getDeviceId() {
+            let id = localStorage.getItem('device_id');
+            if (!id) {
+                const arr = new Uint8Array(16);
+                crypto.getRandomValues(arr);
+                id = Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+                localStorage.setItem('device_id', id);
+            }
+            return id;
+        }
+
+        // Login
+        function handleLogin(e) {
+            e.preventDefault();
+            const code = document.getElementById('codeInput').value.trim();
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('errorMsg');
+            const card = document.getElementById('loginCard');
+
+            if (!code) {
+                errorMsg.textContent = 'الرجاء إدخال الكود';
+                errorMsg.classList.add('show');
+                document.getElementById('codeInput').style.animation = 'shake 0.5s ease';
+                setTimeout(() => document.getElementById('codeInput').style.animation = '', 500);
+                return;
+            }
+
+            errorMsg.classList.remove('show');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            fetch('/api/verify-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, device_id: getDeviceId() })
+            })
+            .then(r => r.json().then(data => ({ ok: r.ok, data })))
+            .then(({ ok, data }) => {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+
+                if (ok) {
+                    card.classList.add('success');
+                    document.getElementById('successMsg').textContent = 'مرحباً! جاري التحويل...';
+                    document.getElementById('successMsg').style.display = 'block';
+                    document.getElementById('loginForm').style.display = 'none';
+
+                    sessionStorage.setItem('user_session', JSON.stringify({
+                        code: data.code, label: data.label, remaining: data.remaining
+                    }));
+                    setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+                } else {
+                    errorMsg.textContent = data.error;
+                    errorMsg.classList.add('show');
+                    document.getElementById('codeInput').style.animation = 'shake 0.5s ease';
+                    setTimeout(() => document.getElementById('codeInput').style.animation = '', 500);
+                }
+            })
+            .catch(() => {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                errorMsg.textContent = 'خطأ في الاتصال';
+                errorMsg.classList.add('show');
+            });
+        }
+
+        document.getElementById('codeInput').addEventListener('input', () => {
+            document.getElementById('errorMsg').classList.remove('show');
+        });
+    </script>
+</body>
+</html>
